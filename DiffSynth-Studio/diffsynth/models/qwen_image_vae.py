@@ -704,7 +704,6 @@ class QwenImageVAE(torch.nn.Module):
         self.std = 1 / torch.tensor(std).view(1, 16, 1, 1, 1)
 
     def encode(self, x, **kwargs):
-        # 因为qwenimage用的wan2.1的3dvae，然后他们这里是用在image edit这个任务，然而之前的这个3dvae好像图像方面会有损失，所以他们单独对图像进行了微调。
         original_shape = x.shape
         if len(x.shape) == 4:
             x = x.unsqueeze(2)

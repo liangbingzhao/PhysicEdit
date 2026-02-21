@@ -381,8 +381,8 @@ class PhysicalEditingDataset(torch.utils.data.Dataset):
         video_file_extension=("mp4", "avi", "mov", "wmv", "mkv", "flv", "webm"),
         repeat: int = 1,
         key_frame_stride: int = 8,
-        require_meta: bool = True,  # True: 无元信息就跳过；False: 允许空文本
-        args=None,                  # 可选从 args 提取相同命名参数
+        require_meta: bool = True,  
+        args=None,                  
     ):
         if args is not None:
             root_dir = getattr(args, "dataset_base_path", root_dir)
@@ -416,7 +416,6 @@ class PhysicalEditingDataset(torch.utils.data.Dataset):
             print("One of height/width is None. Setting `dynamic_resolution` to True.")
             self.dynamic_resolution = True
 
-        # ------- 构建样本列表 -------
         self.samples: List[Dict[str, Any]] = self._build_samples(self.root)
         if len(self.samples) == 0:
             warnings.warn("PhysicalEditingDataset: no valid samples found.")
@@ -1110,7 +1109,7 @@ def qwen_image_parser():
     # resume options
     parser.add_argument("--resume_from", type=str, default=None, help="resume from: Accelerate saved state directory (state-*) or training weight file (.safetensors)")
     parser.add_argument("--resume_type", type=str, choices=["auto", "full", "model"], default="auto", help="auto: auto select by path type; full: resume from Accelerate state directory; model: only load model weight")
-    parser.add_argument("--resume_original_num_processes", type=int, default=4, help="resume 时原训练使用的 GPU 数，缺少 metadata 时用于换卡推算")
+    parser.add_argument("--resume_original_num_processes", type=int, default=4, help="resume original number of processes, used for calculating the number of processes when metadata is missing.")
     parser.add_argument("--local_model_path", type=str, default=None, help="Local directory containing the model files (avoids downloading from HuggingFace).")
     parser.add_argument("--dinov2_path", type=str, default=None, required=True, help="Path to the local DINOv2-with-registers-base model directory.")
     return parser

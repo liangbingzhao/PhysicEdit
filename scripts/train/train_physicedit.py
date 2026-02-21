@@ -457,7 +457,6 @@ if __name__ == "__main__":
         from tqdm import tqdm
         from accelerate import Accelerator
 
-        # ==================== ADDED: 打印训练参数量 ====================
         print("\n" + "="*50)
         print("MODEL TRAINABLE PARAMETERS REPORT")
         print("="*50)

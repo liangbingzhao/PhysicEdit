@@ -142,7 +142,6 @@ class QwenImageTextEncoderWithDecode(Qwen2_5_VLForConditionalGeneration):
             "vocab_size": 152064
         })
         super().__init__(config)
-        # 为了兼容现有训练/推理配置，显式保存文本配置生成参数
         self.generation_config = GenerationConfig.from_model_config(config.text_config)
 
     def forward(self,

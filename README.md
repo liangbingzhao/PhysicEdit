@@ -77,8 +77,8 @@ huggingface-cli download facebook/dinov2-with-registers-base --local-dir /path/t
 
 | Name | Description | Link |
 | --- | --- | --- |
-| PhysicEdit | LoRA-finetuned checkpoint for physics-aware image editing | [HuggingFace]() |
-| PhysicTran38K | Video-based dataset of physical state transition | [HuggingFace]() |
+| PhysicEdit | LoRA-finetuned checkpoint for physics-aware image editing | [HuggingFace](https://huggingface.co/metazlb/PhysicEdit) |
+| PhysicTran38K | Video-based dataset of physical state transition | [HuggingFace](https://huggingface.co/datasets/metazlb/PhysicTran38K) |
 
 
 ## 🤖 Training

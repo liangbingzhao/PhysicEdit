@@ -772,13 +772,12 @@ class Qwen2_5_VLForConditionalGeneration(Qwen2_5_VLPreTrainedModel, GenerationMi
         image_embeds = self.vision_head(hidden_states)
 
         loss = None
-        #ZLB,这里loss变了，img embedding单独算的mse loss，但是现在的qwen image edit pipeline并没用这个
         if labels is not None:
             # Upcast to float if we need to compute the loss to avoid potential precision issues
             # prepare labels for logits
             logits_labels = labels.clone().detach()
             image_tokens = (labels == self.config.image_token_id)
-            # -100是要忽略的意思
+            
             logits_labels[image_tokens] = -100
 
             logits = logits.float()

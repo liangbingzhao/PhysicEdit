@@ -322,11 +322,6 @@ class PhysicalTransitionAdapter(nn.Module):
         nn.init.zeros_(self.gate_head.weight)
 
     def forward(self, phy_token_embed):
-        """
-        Args:
-            phy_token_embed: [Batch, Dim] 
-            (这是你从 Qwen output sequence 里把 [PHY_CLS] 那个位置抠出来的向量)
-        """
         feat = self.backbone(phy_token_embed)
         
         logits = self.cls_head(feat)
