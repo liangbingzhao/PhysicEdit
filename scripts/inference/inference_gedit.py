@@ -139,24 +139,6 @@ def resize_image(image, target_area=1024*1024):
 
 
 def load_finetuned_into_pipe(pipe: QwenImagePhysicPipeline, ckpt_path: str):
-    """
-    从 train_new.py 保存的 ckpt 中，同时加载：
-      1) DiT 的 LoRA 权重到 pipe.dit
-      2) 新增模块（perceiver_resampler / visual_thinking_adapter 等）的普通权重到 pipe
-
-    说明：
-    - 训练时的模型是 QwenImageTrainingModule，参数名形如:
-        * "pipe.dit.transformer_blocks.0.attn.to_q.lora_A.default.weight"
-        * "pipe.perceiver_resampler.latents"
-        * "pipe.visual_thinking_adapter.net.0.weight"
-    - export_trainable_state_dict(remove_prefix="pipe.dit.") 之后，ckpt 里会变成:
-        * DiT LoRA: "transformer_blocks.0.attn.to_q.lora_A.default.weight"
-        * 新模块: 仍是 "pipe.perceiver_resampler.latents" / "pipe.visual_thinking_adapter..."
-
-    推理时:
-      - pipe.dit 上通过 load_lora 注入 LoRA（只看 lora_A / lora_B 的 key）
-      - 其他以 "pipe." 开头的普通参数，去掉前缀 "pipe." 后 load_state_dict 到 pipe
-    """
     if not ckpt_path:
         print("[INFER][ckpt] No checkpoint path provided, skip loading.")
         return
@@ -167,33 +149,27 @@ def load_finetuned_into_pipe(pipe: QwenImagePhysicPipeline, ckpt_path: str):
     print(f"[INFER][ckpt] Loading finetuned weights from {ckpt_path}")
     full_state = load_state_dict(ckpt_path)
 
-    # 1) 拆分 LoRA 与非 LoRA
     lora_state = {k: v for k, v in full_state.items()
                   if ("lora_A" in k or "lora_B" in k)}
     non_lora_state = {k: v for k, v in full_state.items()
                       if k not in lora_state}
 
-    # 2) 先加载 DiT 的 LoRA
     if lora_state:
         print(f"[INFER][ckpt] Loading LoRA params into pipe.dit ({len(lora_state)} keys)")
         pipe.load_lora(pipe.dit, state_dict=lora_state)
     else:
         print("[INFER][ckpt] No LoRA keys found in checkpoint.")
 
-    # 3) 再加载新增模块的普通权重（perceiver_resampler / visual_thinking_adapter 等）
-    #    这些 key 形如 "pipe.perceiver_resampler.xxx" -> "perceiver_resampler.xxx"
     remapped_non_lora = {}
     for k, v in non_lora_state.items():
         if k.startswith("pipe."):
-            inner = k[len("pipe."):]  # 去掉 QwenImageTrainingModule 的前缀
+            inner = k[len("pipe."):]
             remapped_non_lora[inner] = v
         else:
-            # 非 LoRA 非 pipe. 前缀的普通权重理论上很少，这里暂时忽略，避免误覆盖 base DiT
             continue
 
     if remapped_non_lora:
         print(f"[INFER][ckpt] Loading non-LoRA finetuned params into pipe ({len(remapped_non_lora)} keys)")
-        # strict=False，且不打印 missing，以免刷屏；missing 大多是 base 模型参数，本来就不在 ckpt 里
         missing, unexpected = pipe.load_state_dict(remapped_non_lora, strict=False)
 
 
@@ -219,12 +195,11 @@ def main():
         default="/path/to/GEdit-Bench/data",
         help="Cache directory for GEdit-Bench dataset"
     )
-    # 为了兼容之前脚本，沿用参数名 lora_path，但现在表示的是"训练好的 checkpoint"
     parser.add_argument(
         "--lora_path",
         type=str,
         default="/path/to/finetuned_checkpoint.safetensors",
-        help="Path to finetuned checkpoint (.safetensors) saved by train_new.py"
+        help="Path to finetuned checkpoint (.safetensors) saved by train_physicedit.py"
     )
 
     # Inference parameters

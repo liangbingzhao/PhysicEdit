@@ -200,7 +200,7 @@ def main():
         "--lora_path",
         type=str,
         default="/path/to/finetuned_checkpoint.safetensors",
-        help="Path to finetuned checkpoint (.safetensors) saved by training script"
+        help="Path to finetuned checkpoint (.safetensors) saved by train_physicedit.py"
     )
 
     # Inference parameters

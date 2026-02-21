@@ -3,9 +3,9 @@
 
 
 <p align="center">
-  <a href="[ARXIV_LINK]"><img src="https://img.shields.io/badge/arXiv-[ARXIV_ID]-b31b1b.svg" alt="arXiv"></a>
+  <a href="[ARXIV_LINK]"><img src="https://img.shields.io/badge/arXiv-PhysicEdit-b31b1b.svg" alt="arXiv"></a>
   <a href="[PROJECT_PAGE_LINK]"><img src="https://img.shields.io/badge/Project-Page-blue" alt="Project Page"></a>
-  <a href="[HUGGINGFACE_LINK]"><img src="https://img.shields.io/badge/🤗-Model-yellow" alt="HuggingFace"></a>
+  <a href="https://huggingface.co/collections/metazlb/physicedit-release"><img src="https://img.shields.io/badge/🤗-PhysicEdit-yellow" alt="HuggingFace"></a>
 </p>
 
 

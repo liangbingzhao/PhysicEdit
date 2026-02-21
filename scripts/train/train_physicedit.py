@@ -49,11 +49,9 @@ class WandbModelLogger(ModelLogger):
         try:
             eval_data = next(self.eval_data_iter)
         except StopIteration:
-            # 如果迭代器耗尽，重新创建
             self.eval_data_iter = iter(self.eval_data)
             eval_data = next(self.eval_data_iter)
         
-        # Get the original model (unwrapped from DistributedDataParallel)
         original_model = accelerator.unwrap_model(model)
         
         # Store original model state
@@ -92,12 +90,8 @@ class WandbModelLogger(ModelLogger):
                 os.makedirs(self.output_path, exist_ok=True)
                 image_path = os.path.join(self.output_path, f"eval_step_{self.global_step}_transition_{transition}_idx_{idx}.jpg")
 
-                #TODO concat original image , output image and gt image
-                # INSERT_YOUR_CODE
-                # 将edit_image, gt_image, image拼在一起保存（横向拼接）
                 from PIL import Image
 
-                # Make sure all images are in PIL.Image mode RGB (handle if already PIL or torch tensor or numpy)
                 def to_pil(img):
                     if isinstance(img, Image.Image):
                         return img.convert("RGB")
@@ -107,13 +101,12 @@ class WandbModelLogger(ModelLogger):
                             return Image.fromarray(img).convert("RGB")
                     except ImportError:
                         pass
-                    # If torch tensor (C, H, W) or (H, W, C)
                     if hasattr(img, "detach"):
                         img = img.detach().cpu()
                         import torch
                         if isinstance(img, torch.Tensor):
-                            if img.dim() == 3:  # (C, H, W) or (H, W, C)
-                                if img.shape[0] in (1,3):  # likely (C, H, W)
+                            if img.dim() == 3:
+                                if img.shape[0] in (1,3):
                                     img = img.permute(1, 2, 0)
                                 img = img.numpy()
                             elif img.dim() == 4:
@@ -128,10 +121,8 @@ class WandbModelLogger(ModelLogger):
                 gt_img = to_pil(gt_image)
                 out_img = to_pil(image)
 
-                # Resize all to the same height if needed
                 img_list = [img for img in [edit_img, gt_img, out_img] if img is not None]
                 if len(img_list) < 3:
-                    # if any image missing, fill with blank
                     width, height = out_img.size if out_img is not None else (832, 480)
                     blank = Image.new("RGB", (width, height), (128, 128, 128))
                     while len(img_list) < 3:
@@ -147,7 +138,6 @@ class WandbModelLogger(ModelLogger):
                     x += im.width
                 concat_img.save(image_path)
                 
-                # Upload to wandb
                 if self.use_wandb:
                     wandb.log({
                         "eval_step": self.global_step,
@@ -171,7 +161,6 @@ class WandbModelLogger(ModelLogger):
                     "eval_error": str(e),
                 }
         
-        # ZLB MODIFY: need to set timesteps back to training mode
         original_model.pipe.scheduler.set_timesteps(1000, training=True)
         # Restore original training mode
         if original_training_mode:
@@ -180,7 +169,6 @@ class WandbModelLogger(ModelLogger):
         return eval_metrics
     
     def save_checkpoint(self, accelerator, model, step_id, is_epoch_end=False):
-        """Save model checkpoint"""
         accelerator.wait_for_everyone()
         if is_epoch_end:
             filename = f"epoch-{step_id}.safetensors"
@@ -198,7 +186,6 @@ class WandbModelLogger(ModelLogger):
         return path
     
     def on_epoch_end(self, accelerator, model, epoch_id):
-        # Save checkpoint at epoch end
         self.save_checkpoint(accelerator, model, epoch_id, is_epoch_end=True)
 
 class QwenImageTrainingModule(DiffusionTrainingModule):
@@ -359,14 +346,14 @@ def _load_resume_metadata(target: Path, resume_type: str) -> Dict[str, Any]:
                 if isinstance(metadata, dict):
                     return metadata
         except Exception as exc:
-            print(f"[RESUME] 读取 metadata 失败: {meta_path}, error: {exc}")
+            print(f"read metadata failed: {meta_path}, error: {exc}")
     return {}
 
 
 def _resolve_resume_target(resume_from: str, resume_type: str):
     target = Path(resume_from).expanduser().resolve()
     if not target.exists():
-        raise FileNotFoundError(f"resume_from 路径不存在: {target}")
+        raise FileNotFoundError(f"resume_from path not exists: {target}")
     chosen_type = resume_type
     if target.is_dir():
         latest_json = target / "latest.json"
@@ -381,12 +368,12 @@ def _resolve_resume_target(resume_from: str, resume_type: str):
                         target = candidate
                         chosen_type = latest_info.get("type", resume_type)
             except Exception as exc:
-                print(f"[RESUME] 读取 {latest_json} 失败: {exc}")
+                print(f"read {latest_json} failed: {exc}")
         if resume_type == "auto":
             chosen_type = "full" if _is_accelerate_state_dir(target) else "model"
         if chosen_type == "full":
             if not _is_accelerate_state_dir(target):
-                raise ValueError(f"{target} 不像 Accelerate state 目录，无法按 full 恢复")
+                raise ValueError(f"{target} is not an Accelerate state directory, cannot resume by full")
             metadata = _load_resume_metadata(target, "full")
             metadata.setdefault("global_step", _infer_step_number(target.name))
             metadata.setdefault("type", "full")
@@ -394,7 +381,7 @@ def _resolve_resume_target(resume_from: str, resume_type: str):
             return chosen_type, target, metadata
         ckpts = sorted(target.glob("*.safetensors"), key=lambda p: (_infer_step_number(p.name), p.stat().st_mtime))
         if not ckpts:
-            raise ValueError(f"{target} 下未找到 safetensors checkpoint")
+            raise ValueError(f"{target} did not find safetensors checkpoint")
         latest = ckpts[-1]
         metadata = _load_resume_metadata(latest, "model")
         metadata.setdefault("global_step", _infer_step_number(latest.name))
@@ -430,20 +417,6 @@ def _save_checkpoint_metadata(ckpt_path: Path, metadata: Dict[str, Any]):
 if __name__ == "__main__":
     parser = qwen_image_parser()
     args = parser.parse_args()
-    # dataset = UnifiedDataset(
-    #     base_path=args.dataset_base_path,
-    #     metadata_path=args.dataset_metadata_path,
-    #     repeat=args.dataset_repeat,
-    #     data_file_keys=args.data_file_keys.split(","),
-    #     main_data_operator=UnifiedDataset.default_image_operator(
-    #         base_path=args.dataset_base_path,
-    #         max_pixels=args.max_pixels,
-    #         height=args.height,
-    #         width=args.width,
-    #         height_division_factor=16,
-    #         width_division_factor=16,
-    #     )
-    # )
     dataset = PhysicalEditingDataset(args=args)
     model = QwenImageTrainingModule(
         model_paths=args.model_paths,
@@ -473,13 +446,6 @@ if __name__ == "__main__":
         eval_every_n_steps=args.eval_every_n_steps,
         eval_data=dataset if args.eval_every_n_steps is not None else None,
     )
-    # launcher_map = {
-    #     "sft": launch_training_task,
-    #     "data_process": launch_data_process_task,
-    #     "direct_distill": launch_training_task,
-    # }
-    # launcher_map[args.task](dataset, model, model_logger, args=args)
-
 
     ################### custom wandb launcher ###################
     optimizer = torch.optim.AdamW(model.trainable_modules(), lr=args.learning_rate, weight_decay=args.weight_decay)
@@ -509,7 +475,6 @@ if __name__ == "__main__":
         for name, param in model.named_parameters():
             if param.requires_grad:
                 total_trainable_params += param.numel()
-                # 打印前几个参数名作为示例，防止刷屏
                 trainable_param_names.append(name)
                 if "perceiver" in name:
                     perceiver_resampler_params += param.numel()
@@ -571,21 +536,19 @@ if __name__ == "__main__":
                     # }
                     fixed_state_dict = {}
                     for k, v in state_dict.items():
-                        # 说明：保存时把 "pipe.dit." 去掉了，所以 DiT 的 key 现在一般是 "transformer_blocks.0.xxx" 这类
-                        # 而 pipe.perceiver_resampler.* / pipe.visual_thinking_adapter.* 等本来就是完整名，不能再加前缀
-                        if not k.startswith("pipe."):  # 认为这是当时 strip 掉前缀的 DiT 权重
-                            new_k = f"{remove_prefix}{k}"   # 变成 "pipe.dit.transformer_blocks.0.xxx"
+                        if not k.startswith("pipe."):
+                            new_k = f"{remove_prefix}{k}"
                         else:
-                            new_k = k                       # 已经是 "pipe.xxx" 的，保持不动
+                            new_k = k
                         fixed_state_dict[new_k] = v
                     state_dict = fixed_state_dict
 
                 missing, unexpected = model.load_state_dict(state_dict, strict=False)
                 if missing:
-                    print(f"[RESUME][model] 缺失参数: {missing}")
+                    print(f"[RESUME][model] missing parameters: {missing}")
                 if unexpected:
-                    print(f"[RESUME][model] 额外参数: {unexpected}")
-                print(f"[RESUME][model] 已从 {target_path} 恢复")
+                    print(f"[RESUME][model] unexpected parameters: {unexpected}")
+                print(f"[RESUME][model] resumed from {target_path}")
 
         ############################################
         model, optimizer, dataloader, scheduler = accelerator.prepare(model, optimizer, dataloader, scheduler)
@@ -614,8 +577,8 @@ if __name__ == "__main__":
 
         resumed_using_full_state = False
         if resume_info and resume_info["type"] == "full":
-            # 现在不再保存/加载 Accelerate 的 state，禁用 full 恢复，保留元信息做步数推断
-            print(f"[RESUME][full] 已禁用 Accelerate state 恢复，忽略 {resume_info['path']}，按模型权重/元信息推断继续")
+            # now we don't save/load Accelerate state, disable full recovery, keep metadata for step inference
+            print(f"[RESUME][full] disabled Accelerate state recovery, ignored {resume_info['path']}, continue by model weights/metadata inference")
 
         if total_batches_per_epoch is None or total_batches_per_epoch == 0:
             start_epoch = resume_epoch_meta if resumed_using_full_state else 0
@@ -640,7 +603,7 @@ if __name__ == "__main__":
         original_model = accelerator.unwrap_model(model)
 
         if start_epoch >= num_epochs:
-            print(f"[RESUME] 计划中的 {num_epochs} 个 epoch 已完成 (start_epoch={start_epoch})，结束训练")
+            print(f"[RESUME] {num_epochs} epochs planned have been completed (start_epoch={start_epoch}), end training")
             if original_model.use_wandb and model_logger.is_main_process:
                 wandb.finish()
             return

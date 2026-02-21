@@ -421,16 +421,10 @@ class PhysicalEditingDataset(torch.utils.data.Dataset):
         if len(self.samples) == 0:
             warnings.warn("PhysicalEditingDataset: no valid samples found.")
 
-    # =========================
-    # 封装的工具 / 读取函数
-    # =========================
     def _is_video_file(self,p: Path) -> bool:
         return p.suffix.lower() in VIDEO_EXTS
 
     def _collect_leaf_dirs(self, root: Path) -> List[Path]:
-        """
-        一旦目录内出现视频文件，就把该目录视为叶子并停止向下。
-        """
         leaf: List[Path] = []
         for cur, subdirs, files in os.walk(root):
             cur_p = Path(cur)
@@ -439,32 +433,6 @@ class PhysicalEditingDataset(torch.utils.data.Dataset):
                 leaf.append(cur_p)
                 subdirs[:] = []  # stop descending into children
         return sorted(set(leaf))
-
-    # def _read_leaf_metadata(self, leaf: Path) -> Dict[int, Dict[str, str]]:
-    #     """
-    #     读取 leaf/metadata.json（数组），返回 idx -> {"prompt","state","transition"}
-    #     """
-    #     meta_path = leaf / "metadata.json"
-    #     out: Dict[int, Dict[str, str]] = {}
-    #     if not meta_path.exists():
-    #         return out
-    #     try:
-    #         arr = json.loads(meta_path.read_text(encoding="utf-8"))
-    #     except Exception:
-    #         return out
-    #     if not isinstance(arr, list):
-    #         return out
-    #     for obj in arr:
-    #         try:
-    #             idx = int(obj["idx"])
-    #             out[idx] = {
-    #                 "prompt": str(obj.get("prompt", "")),
-    #                 "state": str(obj.get("State", "")),
-    #                 "transition": str(obj.get("Transition", "")),
-    #             }
-    #         except Exception:
-    #             continue
-    #     return out
 
     def _read_leaf_metadata(self, leaf: Path) -> Dict[int, Dict[str, Any]]:
         uni_path = leaf / "unified_output_new_qwen.jsonl"
@@ -485,31 +453,10 @@ class PhysicalEditingDataset(torch.utils.data.Dataset):
                 except Exception:
                     continue
                 out[idx] = obj
-                # prompt = str(obj.get("prompt", ""))
-                # edit_instruction = str(obj.get("edit_instruction", ""))
-                # triplet = obj.get("triplet") or {}
-                # state = str(obj.get("State", ""))
-                # transition = str(obj.get("Transition", ""))
-                # # 保障 triplet 字段存在且为 dict
-                # if not isinstance(triplet, dict):
-                #     triplet = {}
-                # out[idx] = {
-                #     "prompt": prompt,
-                #     "edit_instruction": edit_instruction,
-                #     "triplet": {
-                #         "first_state_prompt": triplet.get("first_state_prompt", ""),
-                #         "middle_transition_prompt": triplet.get("middle_transition_prompt", ""),
-                #         "final_state_prompt": triplet.get("final_state_prompt", "")
-                #     },
-                #     "state": state,
-                #     "transition": transition,
-                # }
+                
         return out
 
     def _read_filtered_names(self, leaf: Path) -> Set[str]:
-        """
-        读取 leaf/final_filter_videos.txt（若存在），每行文件名如 '35.mp4'
-        """
         names = set()
         txt = leaf / "final_filter_videos.txt"
         if not txt.exists():
@@ -581,11 +528,9 @@ class PhysicalEditingDataset(torch.utils.data.Dataset):
                     continue
                 meta = meta_map.get(idx)
                 if meta is None and self.require_meta:
-                    # 没有元信息时跳过
                     continue
                 if meta is None:
                     meta = {"prompt": "", "state": "", "transition": "", "edit_instruction": "", "triplet": {}}
-                # breakpoint()
                 high_rules = self.read_high_rules(meta)
                 supported_rules, contradicted_rules = self.get_supported_and_contradicted_rules(meta, high_rules)
 
@@ -600,12 +545,10 @@ class PhysicalEditingDataset(torch.utils.data.Dataset):
                     "supported_rules": supported_rules,
                     "contradicted_rules": contradicted_rules,
                 })
-        # 按目录+idx 排序，稳定
         samples.sort(key=lambda x: (Path(x["path"]).parent.as_posix(), x["idx"]))
         print(f"[PhysicalEditingDataset] collected {len(samples)} samples from {len(leaf_dirs)} leaf dirs.")
         return samples
 
-    # ---------- 与 baseline 对齐的图像工具 ----------
     def _crop_and_resize(self, image: Image.Image, target_height: int, target_width: int) -> Image.Image:
         width, height = image.size
         scale = max(target_width / width, target_height / height)
@@ -636,7 +579,6 @@ class PhysicalEditingDataset(torch.utils.data.Dataset):
         try:
             total = int(reader.count_frames())
         except Exception:
-            # 极少情况下 imageio 不支持 count_frames；退化为遍历
             total = 0
             try:
                 while True:
@@ -677,7 +619,6 @@ class PhysicalEditingDataset(torch.utils.data.Dataset):
         return frames
 
     def extract_middle_key_frames(self, frames: List[Image.Image]) -> List[Image.Image]:
-        # print(f"original frames: {len(frames)}")
         if len(frames) <= 2:
             return []
         middle_frames = frames[1:-1]
@@ -693,9 +634,6 @@ class PhysicalEditingDataset(torch.utils.data.Dataset):
         return selected_frames
 
     def stitch_middle_key_frames(self, frames: List[Image.Image]) -> Optional[Image.Image]:
-        """
-        3*2 concat middle frames to one image
-        """
         if len(frames) != 6:
             warnings.warn(f"Expected 6 frames, but got {len(frames)}")
             return None
@@ -713,9 +651,6 @@ class PhysicalEditingDataset(torch.utils.data.Dataset):
             stitched_image.paste(img, (col * w, row * h))
         return stitched_image
 
-    # =========================
-    # Dataset 接口
-    # =========================
     def __len__(self) -> int:
         return len(self.samples) * self.repeat
 
@@ -730,9 +665,8 @@ class PhysicalEditingDataset(torch.utils.data.Dataset):
             return None
 
         sample = {
-            # "video": frames,               # List[PIL.Image]
-            "image": frames[-1],      # 最后一帧作为 gt image
-            "edit_image": frames[0],  # 第一帧作为 edit image
+            "image": frames[-1],
+            "edit_image": frames[0],
             "middle_key_frames": middle_key_frames,
             "stitched_image": stitched_image,
             "prompt": rec["prompt"],
