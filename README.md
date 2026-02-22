@@ -13,7 +13,6 @@
     <a href="https://liangbingzhao.github.io/" target="_blank">Liangbing Zhao</a><sup>1</sup>, </span>
     <a href="https://le-zhuo.com/" target="_blank">Le Zhuo</a><sup>2,3</sup>, </span>
     <a href="https://sayak.dev/" target="_blank">Sayak Paul</a><sup>4</sup>, </span>
-    <br>
     <a href="https://www.ee.cuhk.edu.hk/~hsli/" target="_blank">Hongsheng Li</a><sup>2</sup>, </span>
     <a href="https://cemse.kaust.edu.sa/profiles/mohamed-elhoseiny" target="_blank">Mohamed Elhoseiny</a><sup>1</sup></span>
 </div>
