@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="[ARXIV_LINK]"><img src="https://img.shields.io/badge/arXiv-PhysicEdit-b31b1b.svg" alt="arXiv"></a>
-  <a href="[PROJECT_PAGE_LINK]"><img src="https://img.shields.io/badge/Project-Page-blue" alt="Project Page"></a>
+  <a href="https://liangbingzhao.github.io/statics2dynamics/"><img src="https://img.shields.io/badge/Project-Page-blue" alt="Project Page"></a>
   <a href="https://huggingface.co/collections/metazlb/physicedit-release"><img src="https://img.shields.io/badge/🤗-PhysicEdit-yellow" alt="HuggingFace"></a>
 </p>
 
@@ -131,7 +131,7 @@ python scripts/inference/validate.py \
     --lora_path /path/to/physicedit_checkpoint.safetensors
 ```
 
-We also provide inference scripts for various image editing benchmarks in `scripts/inference/`, including **PICABench**, **GEdit-Bench**, **ImgEdit-Bench**, **KRIS-Bench**, and **RISE-Bench**. You can refer to the respective scripts (`inference_*.py`) for usage details.
+We also provide inference scripts for image editing benchmarks in `scripts/inference/`, including **PICABench** and **KRIS-Bench**. You can refer to the respective scripts (`inference_*.py`) for usage details.
 
 ## 🤝 Acknowledgement
 
