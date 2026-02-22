@@ -11,8 +11,9 @@
 
 <div>
     <a href="https://liangbingzhao.github.io/" target="_blank">Liangbing Zhao</a><sup>1</sup>, </span>
-    <a href="https://le-zhuo.com/" target="_blank">Le Zhuo</a><sup>2</sup>, </span>
-    <a href="https://sayak.dev/" target="_blank">Sayak Paul</a><sup>3</sup>, </span>
+    <a href="https://le-zhuo.com/" target="_blank">Le Zhuo</a><sup>2,3</sup>, </span>
+    <a href="https://sayak.dev/" target="_blank">Sayak Paul</a><sup>4</sup>, </span>
+    <br>
     <a href="https://www.ee.cuhk.edu.hk/~hsli/" target="_blank">Hongsheng Li</a><sup>2</sup>, </span>
     <a href="https://cemse.kaust.edu.sa/profiles/mohamed-elhoseiny" target="_blank">Mohamed Elhoseiny</a><sup>1</sup></span>
 </div>
@@ -21,7 +22,8 @@
 <div>
     <sup>1</sup>KAUST&emsp;
     <sup>2</sup>CUHK MMLAB&emsp;
-    <sup>3</sup>Hugging Face&emsp;
+    <sup>3</sup>Krea AI&emsp;
+    <sup>4</sup>Hugging Face&emsp;
 </div>
 
 <img src="figures/teaser.jpg" width="90%"/>
