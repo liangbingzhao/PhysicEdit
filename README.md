@@ -39,7 +39,7 @@ We reformulate editing as a <b>Physical State Transition</b>, leveraging continu
 ## 🔥 News
 
 - **[DATE]** — Release [paper]().
-- **[DATE]** — Release PhysicTran38K dataset, model checkpoints, as well as the training and inference code.
+- **[2026/2/25]** — Release PhysicTran38K dataset, model checkpoints, as well as the training and inference code.
 
 ## ✨ Quick Start 
 
