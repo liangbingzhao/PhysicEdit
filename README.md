@@ -3,7 +3,7 @@
 
 
 <p align="center">
-  <a href="[ARXIV_LINK]"><img src="https://img.shields.io/badge/arXiv-PhysicEdit-b31b1b.svg" alt="arXiv"></a>
+  <a href="https://arxiv.org/abs/2602.21778"><img src="https://img.shields.io/badge/arXiv-PhysicEdit-b31b1b.svg" alt="arXiv"></a>
   <a href="https://liangbingzhao.github.io/statics2dynamics/"><img src="https://img.shields.io/badge/Project-Page-blue" alt="Project Page"></a>
   <a href="https://huggingface.co/collections/metazlb/physicedit-release"><img src="https://img.shields.io/badge/🤗-PhysicEdit-yellow" alt="HuggingFace"></a>
 </p>
