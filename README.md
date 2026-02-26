@@ -144,12 +144,14 @@ This codebase is heavily built on [DiffSynth-Studio](https://github.com/modelsco
 If you find this work for your research and applications, please cite using this BibTeX:
 
 ```bibtex
-@article{[CITE_KEY],
-  title   = {[PAPER TITLE]},
-  author  = {[AUTHORS]},
-  journal = {[VENUE]},
-  year    = {[YEAR]},
-  url     = {[ARXIV_LINK]}
+@misc{zhao2026staticsdynamicsphysicsawareimage,
+      title={From Statics to Dynamics: Physics-Aware Image Editing with Latent Transition Priors}, 
+      author={Liangbing Zhao and Le Zhuo and Sayak Paul and Hongsheng Li and Mohamed Elhoseiny},
+      year={2026},
+      eprint={2602.21778},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2602.21778}, 
 }
 ```
 
